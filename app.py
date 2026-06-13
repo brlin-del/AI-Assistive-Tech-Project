@@ -1,25 +1,33 @@
 from fastapi import FastAPI, UploadFile, File
-from ultralytics import YOLO
+from object_detection import VisionAssistant
 import shutil
 import os
 
 app = FastAPI()
-model = YOLO('yolov8n.pt')
+
+# Load VisionAssistant once at startup
+assistant = VisionAssistant(model_path='weights/yolov8n.pt')
 
 @app.post("/predict")
-async def predict(file:UploadFile = File (...)):
+async def predict(file: UploadFile = File(...)):
     temp_filename = "temp_image.jpg"
-    with open(temp_filename, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    results = model(temp_filename)
-    detected = []
-    for r in results:
-        for box in r.boxes:
-            detected.append(model.names[int(box.cls[0])])
-    if os.path.exists(temp_filename):
-        os.remove(temp_filename)
-    return {"detected": detected}
+    try:
+        with open(temp_filename, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        detected_objects = assistant.detect_objects(temp_filename)
+        
+        return {
+            "message": "Image processed successfully",
+            "detected": detected_objects,
+            "count": len(detected_objects)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        if os.path.exists(temp_filename):
+            os.remove(temp_filename)
 
 @app.get("/")
-def home():
-    return {"message": "AI model is ready"}
+def read_root():
+    return {"message": "Vision Assistant API is running!"}
