@@ -1,0 +1,12 @@
+venv/
+runs/
+weights/
+__pycache__/
+*.pyc
+*.pt
+*.jpg
+*.jpeg
+*.png
+temp_image.jpg
+tmp_cache/
+.env
