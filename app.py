@@ -6,7 +6,7 @@ import os
 
 app = FastAPI()
 
-assistant = VisionAssistant(model_path='weights/yolov8n.pt')
+assistant = VisionAssistant(model_path='yolov8n.pt')
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -14,10 +14,8 @@ async def predict(file: UploadFile = File(...)):
     try:
         with open(temp_filename, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
         detected_objects = assistant.detect_objects(temp_filename)
         arabic_objects = [translate(obj) for obj in detected_objects]
-        
         return {
             "message": "Image processed successfully",
             "detected_english": detected_objects,
