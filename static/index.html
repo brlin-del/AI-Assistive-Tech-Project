@@ -6,10 +6,15 @@
     <title>مساعد الرؤية الذكي</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .container { max-width: 600px; width: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { max-width: 600px; width: 100%; margin-top: 30px; }
         h1 { text-align: center; font-size: 28px; margin-bottom: 8px; color: #38bdf8; }
-        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; }
+        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; }
+        .nav { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; }
+        .nav button { background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .nav button.active { background: #0ea5e9; border-color: #0ea5e9; color: white; }
+        .page { display: none; }
+        .page.active { display: block; }
         .upload-box { border: 2px dashed #334155; border-radius: 16px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1e293b; }
         .upload-box:hover { border-color: #38bdf8; }
         .upload-box input { display: none; }
@@ -24,37 +29,111 @@
         .results h2 { color: #38bdf8; margin-bottom: 16px; font-size: 20px; }
         .object-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #0f172a; border-radius: 10px; margin-bottom: 8px; }
         .arabic { font-size: 18px; font-weight: bold; color: #38bdf8; }
-        .english { font-size: 14px; color: #64748b; }
+        .right-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .english { font-size: 12px; color: #64748b; }
+        .confidence { font-size: 13px; color: #22c55e; font-weight: bold; }
+        .conf-bar { height: 4px; background: #334155; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+        .conf-fill { height: 100%; background: #22c55e; border-radius: 4px; }
         .count { text-align: center; color: #94a3b8; margin-top: 12px; font-size: 14px; }
-        .loading { text-align: center; color: #38bdf8; margin-top: 16px; display: none; font-size: 16px; }
+        .loading { margin-top: 16px; display: none; }
+        .loading-box { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #334155; border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: #38bdf8; font-size: 16px; margin-bottom: 8px; }
+        .loading-sub { color: #64748b; font-size: 13px; }
+        .error-box { background: #2d1515; border: 1px solid #ef4444; border-radius: 12px; padding: 16px; text-align: center; color: #ef4444; margin-top: 16px; display: none; }
         .empty { text-align: center; color: #ef4444; padding: 20px; }
+        .about-card { background: #1e293b; border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+        .about-card h3 { color: #38bdf8; margin-bottom: 12px; font-size: 18px; }
+        .about-card p { color: #94a3b8; line-height: 1.7; font-size: 15px; }
+        .about-card .tag { display: inline-block; background: #0f172a; border: 1px solid #334155; color: #38bdf8; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        .developer { display: flex; align-items: center; gap: 16px; background: #1e293b; border-radius: 16px; padding: 20px; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; background: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .dev-info h3 { color: white; font-size: 18px; margin-bottom: 4px; }
+        .dev-info p { color: #94a3b8; font-size: 14px; }
+        .url-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin-top: 12px; color: #38bdf8; font-size: 14px; word-break: break-all; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤖 مساعد الرؤية الذكي</h1>
-        <p class="subtitle">ارفع صورة وسيقوم الذكاء الاصطناعي بتحديد الأشياء فيها</p>
+        <p class="subtitle">ذكاء اصطناعي لمساعدة المكفوفين على التعرف على الأشياء</p>
 
-        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
-            <label>📷 اضغط هنا لاختيار صورة</label>
-            <img id="preview" style="display:none">
+        <div class="nav">
+            <button class="active" onclick="showPage('home')">🏠 الرئيسية</button>
+            <button onclick="showPage('about')">ℹ️ عن المشروع</button>
         </div>
 
-        <button class="btn" id="detectBtn" onclick="detect()" disabled>🔍 تحليل الصورة</button>
+        <div id="home" class="page active">
+            <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+                <label>📷 اضغط هنا لاختيار صورة</label>
+                <img id="preview" style="display:none">
+            </div>
 
-        <div class="loading" id="loading">⏳ جاري التحليل... قد يستغرق حتى 60 ثانية في أول مرة</div>
+            <button class="btn" id="detectBtn" onclick="detect()" disabled>🔍 تحليل الصورة</button>
 
-        <div class="results" id="results">
-            <h2>🎯 الأشياء المكتشفة</h2>
-            <div id="objectsList"></div>
-            <p class="count" id="countText"></p>
-            <button class="btn btn-speak" id="speakBtn" onclick="speak()">🔊 اسمع النتائج بالعربي</button>
+            <div class="loading" id="loading">
+                <div class="loading-box">
+                    <div class="spinner"></div>
+                    <div class="loading-text">⏳ جاري التحليل...</div>
+                    <div class="loading-sub" id="loadingMsg">يرجى الانتظار</div>
+                </div>
+            </div>
+
+            <div class="error-box" id="errorBox">
+                ❌ حدث خطأ في الاتصال. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.
+            </div>
+
+            <div class="results" id="results">
+                <h2>🎯 الأشياء المكتشفة</h2>
+                <div id="objectsList"></div>
+                <p class="count" id="countText"></p>
+                <button class="btn btn-speak" onclick="speak()">🔊 اسمع النتائج بالعربي</button>
+            </div>
+        </div>
+
+        <div id="about" class="page">
+            <div class="about-card">
+                <h3>📖 عن المشروع</h3>
+                <p>مساعد الرؤية الذكي هو مشروع تخرج يهدف إلى مساعدة المكفوفين وضعاف البصر على التعرف على الأشياء من حولهم باستخدام الذكاء الاصطناعي.</p>
+            </div>
+
+            <div class="about-card">
+                <h3>⚙️ التقنيات المستخدمة</h3>
+                <span class="tag">YOLOv8</span>
+                <span class="tag">FastAPI</span>
+                <span class="tag">Python</span>
+                <span class="tag">Arabic TTS</span>
+                <span class="tag">Render.com</span>
+            </div>
+
+            <div class="about-card">
+                <h3>✨ المميزات</h3>
+                <p>• كشف الأشياء بدقة عالية باستخدام YOLOv8<br>• نتائج باللغتين العربية والإنجليزية<br>• نسبة الثقة لكل شيء مكتشف<br>• قراءة النتائج بصوت عربي واضح<br>• يعمل على أي جهاز أو هاتف</p>
+            </div>
+
+            <div class="developer">
+                <div class="avatar">👨‍💻</div>
+                <div class="dev-info">
+                    <h3>مشروع تخرج</h3>
+                    <p>تقنية المساعدة بالذكاء الاصطناعي</p>
+                    <div class="url-box">https://ai-assistive-tech-project.onrender.com</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let detectedArabic = [];
+        let loadingTimer;
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            event.target.classList.add('active');
+        }
 
         function previewImage(event) {
             const file = event.target.files[0];
@@ -64,6 +143,7 @@
                 preview.style.display = 'block';
                 document.querySelector('.upload-box label').style.display = 'none';
                 document.getElementById('detectBtn').disabled = false;
+                document.getElementById('errorBox').style.display = 'none';
             }
         }
 
@@ -74,6 +154,16 @@
             document.getElementById('detectBtn').disabled = true;
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
+            document.getElementById('errorBox').style.display = 'none';
+
+            let seconds = 0;
+            loadingTimer = setInterval(() => {
+                seconds++;
+                const msg = document.getElementById('loadingMsg');
+                if (seconds < 10) msg.textContent = 'يرجى الانتظار...';
+                else if (seconds < 30) msg.textContent = 'الخادم يستيقظ، قد يستغرق حتى 60 ثانية...';
+                else msg.textContent = 'تقريباً انتهينا، شكراً لصبرك!';
+            }, 1000);
 
             const formData = new FormData();
             formData.append('file', file);
@@ -87,13 +177,17 @@
                 list.innerHTML = '';
 
                 if (data.count === 0) {
-                    list.innerHTML = '<div class="empty">❌ لم يتم اكتشاف أي شيء</div>';
+                    list.innerHTML = '<div class="empty">❌ لم يتم اكتشاف أي شيء، جرب صورة أخرى</div>';
                 } else {
                     data.detected_arabic.forEach((arabic, i) => {
+                        const conf = data.confidences ? Math.round(data.confidences[i] * 100) : null;
                         list.innerHTML += `
                             <div class="object-item">
                                 <span class="arabic">${arabic}</span>
-                                <span class="english">${data.detected_english[i]}</span>
+                                <div class="right-side">
+                                    <span class="english">${data.detected_english[i]}</span>
+                                    ${conf ? `<span class="confidence">${conf}%</span><div class="conf-bar"><div class="conf-fill" style="width:${conf}%"></div></div>` : ''}
+                                </div>
                             </div>`;
                     });
                     setTimeout(() => speak(), 500);
@@ -102,9 +196,10 @@
                 document.getElementById('countText').textContent = `تم اكتشاف ${data.count} شيء`;
                 document.getElementById('results').style.display = 'block';
             } catch (e) {
-                alert('حدث خطأ! حاول مرة أخرى');
+                document.getElementById('errorBox').style.display = 'block';
             }
 
+            clearInterval(loadingTimer);
             document.getElementById('loading').style.display = 'none';
             document.getElementById('detectBtn').disabled = false;
         }
