@@ -1,4 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from object_detection import VisionAssistant
 from translations import translate
 import shutil
@@ -7,6 +9,12 @@ import os
 app = FastAPI()
 
 assistant = VisionAssistant(model_path='yolov8n.pt')
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def read_root():
+    return FileResponse("static/index.html")
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -27,7 +35,3 @@ async def predict(file: UploadFile = File(...)):
     finally:
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-
-@app.get("/")
-def read_root():
-    return {"message": "Vision Assistant API is running!"}
